@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title></title>
+</head>
+<body>
+<style type="text/css">
+BODY {
+	font-family: verdana;
+	font-size: 13px;
+}
+</style>
+<script type="text/javascript">
+// General variables
+var center = 250;
+var smooth = 0;
+
+// Math.cos and Math.sin takes its value in radian, not degrees
+var anglex = 0.00;
+var angley = 0.00;
+var anglez = 0.00;
+
+// This array with vector points should make our cube move in 100x100x100 pixel space
+var Points = new Array(
+	new Array(-50,-50,-50),
+	new Array(50,-50,-50),
+	new Array(50,-50,50),
+	new Array(-50,-50,50),
+	new Array(-50,50,-50),
+	new Array(50,50,-50),
+	new Array(50,50,50),
+	new Array(-50,50,50));
+
+// Function for each cube calculation
+// Loops itself once started - makes the cube move in real-time.
+function runCube() {
+
+	// Temporary function variables
+	var xy, xz, yz, yx, zx, zy;
+	var loop_a, x, y, z;
+	
+	// Loop through the vector points for new transform
+	for (loop_a = 0; loop_a <= 7; loop_a++)  {
+	
+		// Original data from last transform calculation
+		x = Points[loop_a][0];
+		y = Points[loop_a][1];
+		z = Points[loop_a][2];
+	
+		// Rotation around the X axis
+		xy = Math.cos(anglex)*y - Math.sin(anglex)*z;
+		xz = Math.sin(anglex)*y + Math.cos(anglex)*z;
+	
+		// Rotation around the Y axis
+		yz = Math.cos(angley)*xz - Math.sin(angley)*x;
+		yx = Math.sin(angley)*xz + Math.cos(angley)*x;
+	
+		// Rotation around the Z axis
+		zx = Math.cos(anglez)*yx - Math.sin(anglez)*xy;
+		zy = Math.sin(anglez)*yx + Math.cos(anglez)*xy;
+	
+		// Give points new data
+		Points[loop_a][0] = zx;
+		Points[loop_a][1] = zy;
+		Points[loop_a][2] = yz;
+	
+		// Update screen representation elements with new data
+		var maxScale = (Points[loop_a][2]/100)*48;
+		maxScale = (maxScale<18?18:maxScale);
+		document.getElementById('satellite'+loop_a).style.top = (center-70) + Points[loop_a][1]+'px';
+		document.getElementById('satellite'+loop_a).style.left = center + Points[loop_a][0]+'px';
+		document.getElementById('satellite'+loop_a).style.fontSize = maxScale+'px';
+		document.getElementById('satellite'+loop_a).style.display = "block";
+	
+	}
+	
+	// Update screen information
+	var c = document.getElementById('container');
+	c.innerHTML = 'Radian X = '+Math.round(100*anglex)/100+'<br>';
+	c.innerHTML += 'Radian Y = '+Math.round(100*angley)/100+'<br>';
+	c.innerHTML += 'Radian Z = '+Math.round(100*anglez)/100+'<br><br>';
+	c.innerHTML += 'Smoothness = '+smooth+'<br>(setTimeout, 0=best)<br ><br>';
+	c.innerHTML += '1 = '+Math.round(Points[0][0])+','+Math.round(Points[0][1])+','+Math.round(Points[0][2])+'<br>';
+	c.innerHTML += '2 = '+Math.round(Points[1][0])+','+Math.round(Points[1][1])+','+Math.round(Points[1][2])+'<br>';
+	c.innerHTML += '3 = '+Math.round(Points[2][0])+','+Math.round(Points[2][1])+','+Math.round(Points[2][2])+'<br>';
+	c.innerHTML += '4 = '+Math.round(Points[3][0])+','+Math.round(Points[3][1])+','+Math.round(Points[3][2])+'<br>';
+	c.innerHTML += '5 = '+Math.round(Points[4][0])+','+Math.round(Points[4][1])+','+Math.round(Points[4][2])+'<br>';
+	c.innerHTML += '6 = '+Math.round(Points[5][0])+','+Math.round(Points[5][1])+','+Math.round(Points[5][2])+'<br>';
+	c.innerHTML += '7 = '+Math.round(Points[6][0])+','+Math.round(Points[6][1])+','+Math.round(Points[6][2])+'<br>';
+	c.innerHTML += '8 = '+Math.round(Points[7][0])+','+Math.round(Points[7][1])+','+Math.round(Points[7][2])+'<br>';
+	
+	// Loop the function, let the cube move in real time
+	setTimeout('runCube()',smooth);
+}
+
+// Controls the execution rate of the function, less is faster with more smooth results.
+function Smooth(smoothVal) {
+	if (smooth > 0) { 
+		smooth += smoothVal;
+	} else if (smooth == 0 && smoothVal > 0) {
+		smooth += smoothVal;
+	} else { 
+		smooth = 0; 
+	}	
+}
+
+// X, Y, Z functions deciding rotation, both speed(angle rate) and direction(positive or negative numbers)
+function X(newVal) {
+	anglex += newVal;
+}
+function Y(newVal) {
+	angley += newVal;
+}
+function Z(newVal) {
+	anglez += newVal;
+}
+</script>
+<div id="container" style="width:500px; height:450px; background-color:#fff; border-radius:10px; padding:5px;">
+Click <a href="javascript:runCube()" onclick="document.getElementById('controlpanel').style.visibility='visible'" style="font-weight:bold">HERE</a> 
+to start a real-time loop, simulating a 3D engine/loop. The cube is the "world", where other objects could be put inside and be affected by 
+the same formula by looping through all the vector points, forcing them to move in the same dimension. I've just used circles to mark the edges 
+of the matrix. This is something I made just to illustrate and learn the basics of a 3D rotation formula.<br><br>
+
+The next time you play a 3D game you may look at it differently. Realizing that the world and all its objects spins around you every time 
+you turn around, even though your head may tell you it's standing still. This should give better understanding for a good graphics card being 
+important for gaming/3D work as well, since every time you move in a 3D world, it has to turn an insane amount of vectors/points to your wanted 
+viewpoint, as well as showing e.g. particle explosions, lighting algorithms and more at the same time. 
+GPUs are specialized for those kind of calculations, much more than CPUs.<br><br>
+
+Understanding the formula below and the example code (view source) should be able to inspire multiple creative uses as well as give a basic 
+understanding of how 3D rotation and dynamic worlds works. Game development today largely happens in already-made 3D engines where all of 
+this and SO much more is already covered, but it's still fun to learn and understand some of the lowest basics behind the curtains.</div>
+<div id="satellite0" style="position:absolute; top:-50px; left:-50px; width:50px; height:50px; display:none;">O</div>
+<div id="satellite1" style="position:absolute; top:-50px; left:-50px; width:50px; height:50px; display:none;">O</div>
+<div id="satellite2" style="position:absolute; top:-50px; left:-50px; width:50px; height:50px; display:none;">O</div>
+<div id="satellite3" style="position:absolute; top:-50px; left:-50px; width:50px; height:50px; display:none;">O</div>
+<div id="satellite4" style="position:absolute; top:-50px; left:-50px; width:50px; height:50px; display:none;">O</div>
+<div id="satellite5" style="position:absolute; top:-50px; left:-50px; width:50px; height:50px; display:none;">O</div>
+<div id="satellite6" style="position:absolute; top:-50px; left:-50px; width:50px; height:50px; display:none;">O</div>
+<div id="satellite7" style="position:absolute; top:-50px; left:-50px; width:50px; height:50px; display:none;">O</div>
+<div id="controlpanel" style="position:absolute; text-align: center; top:350px; left:0px; width:500px; background-color:#ffffff; border:0px solid #000000; visibility:hidden">
+Rotate X [<a href="javascript:X(+0.01)">Increase</a> <a href="javascript:X(-0.01)">Decrease</a>]<br>
+Rotate Y [<a href="javascript:Y(+0.01)">Increase</a> <a href="javascript:Y(-0.01)">Decrease</a>]<br>
+Rotate Z [<a href="javascript:Z(+0.01)">Increase</a> <a href="javascript:Z(-0.01)">Decrease</a>]<br><br>
+Smooth [<a href="javascript:Smooth(-10)">Increase</a> <a href="javascript:Smooth(+10)">Decrease</a>]<br></div>
+
+<table cellpadding="0" cellspacing="0" border="0" width="500"><tr><td>
+<p>In the 2D script I used this formula to rotate around a center point:<br>
+<code><span style="color:#0066CC">x = Math.cos(Radian)*XRadius(hypotenus)<br>
+y = Math.sin(Radian)*YRadius(hypotenus)<br><br>
+
+By changing the radius, you can simulate x,y rotation as well, but only on a 2D plane. It would be simulation, not real 3D.
+Add depth with another z calculation with the above formula, and you would have the 3D effect available.</span></code></p>
+
+<p>This formula gives the coordinate/vector 'x' and/or 'y' new values based on 
+finding the radian x and y ratio through cosine and sine multiplied by hypotenus to keep the proper center point (radius). This formula could be used for simulating 3D on a 2D plane. 
+It could even be used for real 3D calculation, but you would need to find a way to make the rotation radius/hypotenus values work together when e.g 
+crossing a z-axis with a y-axis rotation. When e.g. the z-rotation closes in on the y-axis, the radius of z-rotation (x) would have to be shortened accordingly, 
+start a x-rotation as well and you may have a challenge.</p> 
+
+<p>Here is a formula that does the proper job of 3D calculation. It respects every axis radius/hypotenus in regards to each other.</p>
+<p><code><span style="color:#0066CC">// Rotation around the X axis<br>
+xy = Math.cos(RadianX)*y - Math.sin(RadianX)*z<br>
+xz = Math.sin(RadianX)*y + Math.cos(RadianX)*z<br><br>
+	
+// Rotation around the Y axis<br>
+yz = Math.cos(RadianY)*xz - Math.sin(RadianY)*x<br>
+yx = Math.sin(RadianY)*xz + Math.cos(RadianY)*x<br><br>
+	
+// Rotation around the Z axis<br>
+zx = Math.cos(RadianZ)*yx - Math.sin(RadianZ)*xy<br>
+zy = Math.sin(RadianZ)*yx + Math.cos(RadianZ)*xy<br><br>
+
+Where zx(X), zy(Y), yz(Z) are the new values to use after every calculation in a 3D space of coordinated rotation.</span></code></p>
+
+<p>By changing the RadianX, RadianY, RadianZ up to 2π(6.28)(360°) in this formula you control every axis rotation, and each rotation radius/hypotenus should work in harmony.</p>
+
+It will help to repeat the chapter in a math book on trigonometry (especially sine and cosine) to get a full grasp on the formula above. 
+I had to myself, and will likely need to again when/if using this formula later.
+</td></tr></table><br>
+
+<div id="createdby">
+	&copy; Dag J Nedrelid
+</div>
+</body>
+</html>
